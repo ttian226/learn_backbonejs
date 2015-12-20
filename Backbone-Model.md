@@ -73,3 +73,51 @@ var todo3 = new Todo({
 // {"title":"This todo is done, so take no action on this one.","completed":true}
 console.log(JSON.stringify(todo3));
 ```
+
+#### Model.get()
+
+`Model.get()`提供了一个简单的访问Model属性的方法。
+
+```javascript
+var Todo = Backbone.Model.extend({
+    defaults: {
+        title: '',
+        completed: false
+    }
+});
+
+var todo1 = new Todo();
+console.log(todo1.get('title'));    // 空字符串
+console.log(todo1.get('completed'));// false
+
+var todo2 = new Todo({
+    title: "Retrieved with model's get() method.",
+    completed: true
+});
+
+console.log(todo2.get('title'));    // Retrieved with model's get() method.
+console.log(todo2.get('completed'));// true
+```
+
+如果你需要读取或克隆一个模型的所有属性，使用它的`toJSON()`方法。这个方法返回了一个对象(它不是一个JSON字符串)，这个对象包含了所有的属性。然而`JSON.stringify()`则是把toJSON()方法所生成的对象转换成相应的字符串形式。上面的例子正是利用了这个特性来使用`JSON.stringify()`方法打印Model实例。
+
+```javascript
+var Todo = Backbone.Model.extend({
+    defaults: {
+        title: '',
+        completed: false
+    }
+});
+
+var todo1 = new Todo();
+var todo1Attributes = todo1.toJSON();
+// {title: "", completed: false}
+console.log(todo1Attributes);
+
+var todo2 = new Todo({
+    title: "Try these examples and check results in console.",
+    completed: true
+});
+// {title: "Try these examples and check results in console.", completed: true}
+console.log(todo2.toJSON());
+```
