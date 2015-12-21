@@ -121,3 +121,137 @@ var todo2 = new Todo({
 // {title: "Try these examples and check results in console.", completed: true}
 console.log(todo2.toJSON());
 ```
+
+#### Model.set()
+
+`Model.set()`方法用来给Model设置一个或多个属性值。当Model的任何一个属性值被改变时`change`事件被触发。change事件对于每个属性值的变化可以单独被触发（例如：`change:name`, `change:age`）
+
+```javascript
+var Todo = Backbone.Model.extend({
+    defaults: {
+        title: '',
+        completed: false
+    }
+});
+
+var myTodo = new Todo({
+    title: "Set through instantiation."
+});
+
+console.log('Todo title: ' + myTodo.get('title'));  // Todo title: Set through instantiation.
+console.log('Completed: ' + myTodo.get('completed'));// Completed: false
+
+// 通过Model.set()设置一个属性
+myTodo.set("title", "Title attribute set through Model.set().");
+console.log('Todo title: ' + myTodo.get('title'));  // Todo title: Title attribute set through Model.set().
+console.log('Completed: ' + myTodo.get('completed')); // Completed: false
+
+// 通过Model.set()设置多个属性
+myTodo.set({
+    title: "Both attributes set through Model.set().",
+    completed: true
+});
+console.log('Todo title: ' + myTodo.get('title'));  // Todo title: Both attributes set through Model.set().
+console.log('Completed: ' + myTodo.get('completed')); // Completed: true
+```
+
+#### 直接访问
+
+Model暴露了一个`.attributes`属性。它返回一个包含Model所有内部属性的一个对象。通过`.attributes`给Model设置属性不会触发事件。
+给set()方法传递`{silent:true}`不会触发`change:attr`事件。
+
+```javascript
+var Person = new Backbone.Model();
+
+Person.on('change:name', function () {
+    console.log('Name changed');
+});
+
+// 通过set()方法设置属性会触发change事件，这里会打印Name changed
+Person.set({name: 'Andrew'});
+
+// 不会触发change事件，无输出
+Person.set({name: 'Jeremy'}, {silent: true});
+
+// 'name'属性被改变，true
+console.log(Person.hasChanged("name"));
+// 任何属性被改变，true
+console.log(Person.hasChanged(null));
+```
+
+记住尽可能的使用set()方法赋值，或者在实例化时就初始化属性值。
+
+#### 监听Model的变化
+
+当Backbone Model发生变化时，如果你想接收一个通知。你可以绑定监听器到这个Model上来监听`change`事件。添加监听器最合适的位置就是在`initialize()`方法中。
+
+```javascript
+var Todo = Backbone.Model.extend({
+    defaults: {
+        title: '',
+        completed: false
+    },
+    initialize: function () {
+        console.log('This model has been initialized.');
+        this.on('change', function () {
+            console.log('- Values for this model have changed.');
+        });
+    }
+});
+
+var myTodo = new Todo();
+myTodo.set('title', 'The listener is triggered whenever an attribute value changes.');
+console.log('Title has changed: ' + myTodo.get('title'));
+
+myTodo.set('completed', true);
+console.log('Completed has changed: ' + myTodo.get('completed'));
+
+myTodo.set({
+    title: 'Changing more than one attribute at the same time only triggers the listener once.',
+    completed: true
+});
+
+// Above logs:
+// This model has been initialized.
+// - Values for this model have changed.
+// Title has changed: The listener is triggered whenever an attribute value changes.
+// - Values for this model have changed.
+// Completed has changed: true
+// - Values for this model have changed.
+```
+
+你也可以监听Model中的单独的一个属性的变化，在下面的例子中我们记录了Todo Model中title的变化。
+
+```javascript
+var Todo = Backbone.Model.extend({
+    defaults: {
+        title: '',
+        completed: false
+    },
+    initialize: function () {
+        console.log('This model has been initialized.');
+        this.on('change:title', function () {
+            console.log('Title value for this model has changed.');
+        });
+    },
+    setTitle: function (newTitle) {
+        this.set('title', newTitle);
+    }
+});
+
+var myTodo = new Todo();
+// 下面两处变化都能触发监听
+myTodo.set('title', 'Check what\'s logged.');
+myTodo.setTitle('Go fishing on Sunday.');
+
+// 这次变化不会被触发
+myTodo.set('completed', true);
+console.log('Todo set as completed: ' + myTodo.get('completed'));
+
+// Above logs:
+// This model has been initialized.
+// Title value for this model has changed.
+// Title value for this model has changed.
+// Todo set as completed: true
+```
+
