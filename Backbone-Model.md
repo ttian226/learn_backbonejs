@@ -255,3 +255,63 @@ console.log('Todo set as completed: ' + myTodo.get('completed'));
 // Todo set as completed: true
 ```
 
+#### 校验
+
+Backbone通过`model.validate()`方法支持Model的校验。它允许在设置属性之前来检查这些值。默认情况下校验方法发生在save()方法被调用时或者带有`{validate:true}`参数的set()方法。
+
+```javascript
+var Person = new Backbone.Model({name: 'Jeremy'});
+
+Person.validate = function (attrs) {
+    if (!attrs.name) {
+        return 'I need your name';
+    }
+};
+
+Person.set({name: 'Samuel'});
+console.log(Person.get('name'));
+
+// 删除name属性，强制进行校验
+Person.unset('name', {validate: true});
+```
+
+上面我们使用了`unset()`方法，它可以从Model内部的属性集合中删除一个指定的属性值。
+
+校验方法可以简单，必要的话也可以复杂。如果提供的属性值有效`.validate()`方法什么都不返回。如果属性无效会返回一个错误值。
+
+当校验函数返回错误时：
+
+* `invalid`事件被触发。 带有错误值的Model属性`validationError`会被方法返回（即`this.validationError`就是返回的错误值）
+* `.save()`方法不会被调用，Model的属性不会被更改。
+
+下面是一个完整的校验例子：
+
+```javascript
+var Todo = Backbone.Model.extend({
+    defaults: {
+        completed: false
+    },
+
+    validate: function (attributes) {
+        if (attributes.title === undefined) {
+            return "Remember to set a title for your todo.";
+        }
+    },
+
+    initialize: function () {
+        console.log('This model has been initialized.');
+        this.on('invalid', function (model, error) {
+            console.log(error);
+        });
+    }
+});
+
+var myTodo = new Todo();
+myTodo.set('completed', true, {validate: true});    // Remember to set a title for your todo.
+console.log('completed: ' + myTodo.get('completed'));   // completed: false
+```
+
+*注意* 传递给`validate()`方法的`attributes`只是Model属性的一个浅拷贝，而不是属性本身。
+
+同样注意虽然在初始化中校验是可以的，但是应该尽量避免使用。例如下面：
+`var emptyTodo = new Todo(null, {validate: true});`
