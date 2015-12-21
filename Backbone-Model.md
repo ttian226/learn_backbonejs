@@ -311,7 +311,7 @@ myTodo.set('completed', true, {validate: true});    // Remember to set a title f
 console.log('completed: ' + myTodo.get('completed'));   // completed: false
 ```
 
-*注意* 传递给`validate()`方法的`attributes`只是Model属性的一个浅拷贝，而不是属性本身。
+**注意** 传递给`validate()`方法的`attributes`只是Model属性的一个浅拷贝，而不是属性本身。
 
 同样注意虽然在初始化中校验是可以的，但是应该尽量避免使用。例如下面：
 `var emptyTodo = new Todo(null, {validate: true});`
