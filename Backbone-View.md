@@ -71,5 +71,65 @@ var todosView = new TodoView();
 console.log(todosView.el);  // <ul id="todos" class="container"></ul>
 ```
 
+上面的代码创建了一个DOM元素如下所示，但是还没有添加到文档中。
 
+```html
+<ul id="todos" class="container"></ul>
+```
+
+如果元素已经存在在页面上，你可以给`el`设置一个匹配这个元素的css选择符。
+
+```javascript
+el: '#footer'
+```
+
+或者也可以在创建视图时给`el`设置一个存在的元素。
+
+```javascript
+var todosView = new TodosView({el: $('#footer')});
+```
+
+注意：当声明一个View时，如果你想让`options`，`el`,`tagName`,`id`和`className`等这些属性值在运行时动态计算，它们可以被定义一个函数。
+
+#### $el和$()
+
+视图逻辑通常需要调用jQuery或Zepto中的方法来引用`el`元素和查找子元素。通过定义`$el`属性和`$()`方法，Backbone让这些变的更容易。`view.$el`属性等价于`$(view.el)`，`view.$(selector)`等价于`$(view.el).find(selector)`。在我们TodoView例子的render方法中，我们看到`this.$el`用来设置HTML中的元素，`this.$()`用来查找class名为'edit'的子元素。
+
+#### setElement
+
+如果你想把一个已经存在的视图应用在一个不同的DOM元素上，`setElement`可以达到这个目的。覆盖this.el既需要改变DOM的引用，又要给新元素重新绑定事件（解绑旧元素事件）
+
+`setElement`将会为你创建一个缓存的`$el`引用。把代理事件从旧元素移到新元素上。
+
+```javascript
+// 创建了两个按钮
+var button1 = $('<button></button>');
+var button2 = $('<button></button>');
+
+// 定义了一个新的视图
+var View = Backbone.View.extend({
+    events: {
+        click: function (e) {
+            console.log(view.el === e.target);
+        }
+    }
+});
+
+// 创建了一个视图的实例，应用在button1上
+var view = new View({el: button1});
+
+// 使用setElement把视图应用在button2上
+view.setElement(button2);
+button1.trigger('click');
+button2.trigger('click'); // return true
+```
+
+$el属性表现的是将要在页面上渲染的部分视图。要想获取在页面上渲染的实际视图，你需要作为一个新的元素来添加它，或者把它添加到一个已经存在的元素上。
+
+```javascript
+// 我们也可以把html作为setElement的参数来传递
+var view = new Backbone.View;
+view.setElement('<p><a><b>test</b></a></p>');
+console.log(view.$('a b').html()); // outputs "test"
+```
 
