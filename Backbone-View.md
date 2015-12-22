@@ -235,3 +235,40 @@ var ListView = Backbone.View.extend({
   }
 });
 ```
+
+#### Event hash
+
+Backbone events允许我们绑定事件监听到与el有关联的自定义选择符上。如果没有提供选择符就直接绑定到el上。event以键值对的形式提供`'eventName selector': 'callbackFunction'`，并支持多种事件类型包括`click`, `submit`, `mouseover`, `dblclick`。
+
+```javascript
+// A sample view
+var TodoView = Backbone.View.extend({
+  tagName:  'li',
+
+  // with an events hash containing DOM events
+  // specific to an item:
+  events: {
+    'click .toggle': 'toggleCompleted',
+    'dblclick label': 'edit',
+    'keypress .edit': 'updateOnEnter',
+    'click .destroy': 'clear',
+    'blur .edit': 'close'
+  }
+});
+```
+
+它是基于jQuery的`.delegate()`方法的。唯一要记住的是，在events提供的任何回调字符串，在view的作用域中都必须有一个和它同名的函数。
+
+jQuery的事件委托意味着你不必担心指定的元素是否在页面上。通常使用jQuery你需要随时关注事件绑定的元素是否在页面上。
+
+在我们的TodoView的例子中，`edit`回调函数是当用户双击el下面的label元素时触发的。`updateOnEnter`被调用是在用户按下(keypress)每一个class为edit的元素是产生的。`close`是当class为edit元素失去焦点时触发。每一个回调函数都能够使用`this`来引用TodoView对象。
+
+注意，你也可以使用`_.bind(this.viewEvent, this)`来绑定事件。下面我们使用`_.bind()`重绘我们的视图当模型改变的时候：
+
+```javascript
+var TodoView = Backbone.View.extend({
+  initialize: function() {
+    this.model.bind('change', _.bind(this.render, this));
+  }
+});
+```
