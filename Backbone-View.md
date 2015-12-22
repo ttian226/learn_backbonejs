@@ -133,3 +133,105 @@ view.setElement('<p><a><b>test</b></a></p>');
 console.log(view.$('a b').html()); // outputs "test"
 ```
 
+#### 理解render()
+
+`render()`是一个可选的方法，它定义了渲染模板的业务逻辑。我们可以使用underscore的模板方法，但是如果你更喜爱其它的模板方法也可以使用。
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <meta name="description" content="">
+</head>
+<body>
+  <div id="todo">
+  </div>
+  <script type="text/template" id="item-template">
+    <div>
+      <input id="todo_complete" type="checkbox" <%= completed ? 'checked="checked"' : '' %>>
+      <%= title %>
+    </div>
+  </script>
+  <script src="underscore-min.js"></script>
+  <script src="backbone-min.js"></script>
+  <script src="jquery-min.js"></script>
+  <script src="example.js"></script>
+</body>
+</html>
+```
+
+Underscore的`_.template`方法会把javascript模板转换成函数，通过这个函数可以进行动态渲染。在TodoView中，把html模板通过id`item-template`传递给`_.template()`方法进行编译并把结果保存在todoTpl属性中当视图创建的时候。（例如在视图中定义一个属性：`template: _.template($('#item-template').html())`）
+
+`render()`方法使用这个模板函数。模板函数接受Model的`toJSON()`返回的模型属性集合，使之与这个视图进行关联。模板函数会返回根据Model属性和模板标记编译后的html，然后使用$el.html()给视图el元素设置内容。
+
+```javascript
+var TodoView = Backbone.View.extend({
+    tagName: 'ul',
+    template: _.template($('#item-template').html()),
+    render: function () {
+        this.$el.html(this.template(this.model.toJSON()));
+        return this;
+    }
+});
+
+var view = new TodoView({model: todo});
+console.log(view.render().el);
+```
+
+通常的做法是在`render()`函数的末尾`return this`，它的作用体现在：
+
+* 使视图可以更容易的在其它的父视图中重复使用
+* 创建元素的列表时不需要对单独的每个元素进行渲染和绘制，只需要一次渲染整个列表
+
+一个简单的ListView（不是对每一个Item使用一个ItemView）应该这样写：
+
+```javascript
+var ListView = Backbone.View.extend({
+
+  // Compile a template for this view. In this case '...'
+  // is a placeholder for a template such as 
+  // $("#list_template").html() 
+  template: _.template(…),
+
+  render: function() {
+    this.$el.html(this.template(this.model.attributes));
+    return this;
+  }
+});
+```
+
+足够的简单。让我们假定构建Items使用ItemView的方式来给列表提供增强的行为。我们的ItemView应该如下写：
+
+```javascript
+var ItemView = Backbone.View.extend({
+  events: {},
+  render: function(){
+    this.$el.html(this.template(this.model.attributes));
+    return this;
+  }
+});
+```
+
+注意`render`结尾的`return this;`。这种普遍的写法可以使我们把当前的视图作为子视图来重用。我们也可以使用它在渲染之前预先渲染。我们对ListView的`render()`方法做如下的改造：
+
+```javascript
+var ListView = Backbone.View.extend({
+  render: function(){
+
+    // 获取items数据
+    var items = this.model.get('items');
+
+    // 使用Undersocre的_.each方法遍历items
+    _.each(items, function(item){
+
+      // 传入一个指定的model来创建一个新的ItemView的实例
+      var itemView = new ItemView({ model: item });
+      
+      // itemView的DOM元素在它渲染之后会被添加到当前视图中
+      this.$el.append( itemView.render().el );
+    }, this);
+  }
+});
+```
