@@ -88,8 +88,23 @@ var todo2 = todos.get(2);
 console.log(todo2 === myTodo); // true
 ```
 
-在客户端-服务器的应用中，collection中的model通常有服务器获取。在任何时候你在客户端和服务器之间交互数据时，你需要一个方法来唯一标识model。在Backbone中通常使用`id`,`cid`,`idAttribute`属性。
+在客户端-服务器的应用中，collection中的model通常由服务器获取。在任何时候你在客户端和服务器之间交互数据时，你需要一个方法来唯一标识model。在Backbone中通常使用`id`,`cid`,`idAttribute`属性。
 
 每个在Backbone中的model都有一个id，它是一个唯一标识符，既可以是整型又可以是字符串（例如UUID）。model也会拥有一个cid属性，这是在model创建的时候Backbone会自动生成一个cid（客户端id）。任何唯一标识都可以在collection中检索model。
 
-它们主要的不同就是cid是由Backbone生成的，如果你没有一个真实的id这是非常有帮助的，例如你的model已经被存储到服务端或者你没有保存到数据库。
+它们主要的不同就是cid是由Backbone生成的，如果你还没有设置id属性这是非常有帮助的，例如你的model已经被存储到服务端或者还没有保存到数据库。
+
+`idAttribute`标识的是从服务端返回的model属性名（例如数据库的id），这回告诉Backbone从服务器返回的那个字段名应该作为model的id属性。默认情况下是作为id属性，但也可以自定义。例如，服务器给给model设置了唯一的属性叫`userid`，那么你可以把`idAttribute`设置为`userid`来作为你model的id属性。
+
+在内部，`Backbone.Collection`包含了通过id属性来枚举的model的数组。当`collection.get(id)`被调用时，会通过关联的id去查找model的实例。
+
+```javascript
+// extends the previous example
+
+var todoCid = todos.get(todo2.cid);
+
+// As mentioned in previous example, 
+// models are passed by reference
+console.log(todoCid === myTodo); // true
+```
+
