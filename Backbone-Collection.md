@@ -108,3 +108,108 @@ var todoCid = todos.get(todo2.cid);
 console.log(todoCid === myTodo); // true
 ```
 
+#### 监听事件
+
+因为Collection表示的是一组子项，当有model被添加或移除时，我们可以监听`add`和`remove`事件，下面是例子：
+
+```javascript
+var TodosCollection = new Backbone.Collection();
+
+TodosCollection.on("add", function(todo) {
+  console.log("I should " + todo.get("title") + ". Have I done it before? "  + (todo.get("completed") ? 'Yeah!': 'No.' ));
+});
+
+TodosCollection.add([
+  { title: 'go to Jamaica', completed: false },
+  { title: 'go to China', completed: false },
+  { title: 'go to Disneyland', completed: true }
+]);
+
+// The above logs:
+// I should go to Jamaica. Have I done it before? No.
+// I should go to China. Have I done it before? No.
+// I should go to Disneyland. Have I done it before? Yeah!
+```
+
+另外，我们也可以绑定`change`事件去监听Collection中每一个model的变化。
+
+```javascript
+var TodosCollection = new Backbone.Collection();
+
+// 如果集合中的model改变了会记录日志
+TodosCollection.on("change:title", function(model) {
+    console.log("Changed my mind! I should " + model.get('title'));
+});
+
+TodosCollection.add([
+  { title: 'go to Jamaica.', completed: false, id: 3 },
+]);
+
+var myTodo = TodosCollection.get(3);
+
+myTodo.set('title', 'go fishing');
+// Logs: Changed my mind! I should go fishing
+```
+
+jQuery形式的事件映射`obj.on({click: action})`也可以使用。这样可以比多次调用`.on`先的更清晰，而且有较好的排版。
+
+```javascript
+var Todo = Backbone.Model.extend({
+  defaults: {
+    title: '',
+    completed: false
+  }
+});
+
+var myTodo = new Todo();
+myTodo.set({title: 'Buy some cookies', completed: true});
+
+myTodo.on({
+   'change:title' : titleChanged,
+   'change:completed' : stateChanged
+});
+
+function titleChanged(){
+  console.log('The title was changed!');
+}
+
+function stateChanged(){
+  console.log('The state was changed!');
+}
+
+myTodo.set({title: 'Get the groceries'});
+// The title was changed! 
+```
+
+Backbone事件也支持`once()`方法，它确响应事件时回调函数最多被调用一次。类似于jQuery的`one()`方法。
+
+```javascript
+// 定义一个带有两个counters的对象
+var TodoCounter = { counterA: 0, counterB: 0 };
+// 合并Backbone Events
+_.extend(TodoCounter, Backbone.Events);
+
+// 增加counterA的值，并触发一次'event'事件
+var incrA = function(){ 
+  TodoCounter.counterA += 1; 
+  // 这次trigger将不会生效
+  TodoCounter.trigger('event'); 
+};
+
+// 增加counterB的值
+var incrB = function(){ 
+  TodoCounter.counterB += 1; 
+};
+
+// 只调用一次，而不是显示的解绑事件监听
+TodoCounter.once('event', incrA);
+TodoCounter.once('event', incrB);
+
+// 第一次trigger
+TodoCounter.trigger('event');
+
+console.log(TodoCounter.counterA === 1); // true
+console.log(TodoCounter.counterB === 1); // true
+```
+
+counterA和counterB只被增加一次。
