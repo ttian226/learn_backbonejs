@@ -213,3 +213,118 @@ console.log(TodoCounter.counterB === 1); // true
 ```
 
 counterA和counterB只被增加一次。
+
+#### 重置/刷新集合
+
+相比单独的添加或删除集合中的models，你可能想一次性的更新整个集合。`Collection.set()`接受一个model数组并执行必要的`add`，`remove`，`change`操作来更新集合。
+
+```javascript
+var TodosCollection = new Backbone.Collection();
+
+TodosCollection.add([
+    { id: 1, title: 'go to Jamaica.', completed: false },
+    { id: 2, title: 'go to China.', completed: false },
+    { id: 3, title: 'go to Disneyland.', completed: true }
+]);
+
+// we can listen for add/change/remove events
+TodosCollection.on("add", function(model) {
+  console.log("Added " + model.get('title'));
+});
+
+TodosCollection.on("remove", function(model) {
+  console.log("Removed " + model.get('title'));
+});
+
+TodosCollection.on("change:completed", function(model) {
+  console.log("Completed " + model.get('title'));
+});
+
+TodosCollection.set([
+    { id: 1, title: 'go to Jamaica.', completed: true },
+    { id: 2, title: 'go to China.', completed: false },
+    { id: 4, title: 'go to Disney World.', completed: false }
+]);
+
+// Above logs:
+// Completed go to Jamaica.
+// Removed go to Disneyland.
+// Added go to Disney World.
+```
+
+如果你需要简单的替换集合的内容，那么使用`Collection.reset()`方法。
+
+```javascript
+var TodosCollection = new Backbone.Collection();
+
+// we can listen for reset events
+TodosCollection.on("reset", function() {
+  console.log("Collection reset.");
+});
+
+TodosCollection.add([
+  { title: 'go to Jamaica.', completed: false },
+  { title: 'go to China.', completed: false },
+  { title: 'go to Disneyland.', completed: true }
+]);
+
+console.log('Collection size: ' + TodosCollection.length); // Collection size: 3
+
+TodosCollection.reset([
+  { title: 'go to Cuba.', completed: false }
+]);
+// Above logs 'Collection reset.'
+
+console.log('Collection size: ' + TodosCollection.length); // Collection size: 1
+```
+
+使用不带任何参数的`reset()`方法可以清空集合，当动态加载一个新页面的数据时很有用。
+
+```javascript
+myCollection.reset();
+```
+
+需要注意`Collection.reset()`不会触发add或remove事件，替代的只是会触发`reset`事件。你使用它会使页面的渲染最优化，因为独立的事件开销会很昂贵。
+
+同样注意监听reset事件时，之前的models可以通过`options.previousModels`来访问，非常方便。
+
+```javascript
+var todo = new Backbone.Model();
+var todos = new Backbone.Collection([todo])
+.on('reset', function(todos, options) {
+  console.log(options.previousModels);
+  console.log([todo]);
+  console.log(options.previousModels[0] === todo); // true
+});
+todos.reset([]);
+```
+
+Collection中的`set()`方法可以被用来快速更新集合或models。这个方法会试图使用指定的model列表来执行快速的更新。当列表中的model不在集合中，它将被添加。如果存在将被合并。在集合中存在但没有在列表中的model会被删除。
+
+```javascript
+// Define a model of type 'Beatle' with a 'job' attribute
+var Beatle = Backbone.Model.extend({
+  defaults: {
+    job: 'musician'
+  }
+});
+
+// Create models for each member of the Beatles
+var john = new Beatle({ firstName: 'John', lastName: 'Lennon'});
+var paul = new Beatle({ firstName: 'Paul', lastName: 'McCartney'});
+var george = new Beatle({ firstName: 'George', lastName: 'Harrison'});
+var ringo = new Beatle({ firstName: 'Ringo', lastName: 'Starr'});
+
+// Create a collection using our models
+var theBeatles = new Backbone.Collection([john, paul, george, ringo]);
+
+// Create a separate model for Pete Best
+var pete = new Beatle({ firstName: 'Pete', lastName: 'Best'});
+
+// Update the collection
+theBeatles.set([john, paul, george, pete]);
+
+// Fires a `remove` event for 'Ringo', and an `add` event for 'Pete'.
+// Updates any of John, Paul and Georges's attributes that may have
+// changed over the years.
+```
