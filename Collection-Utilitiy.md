@@ -277,3 +277,45 @@ var Todo = Backbone.Model.extend({
 var todo = new Todo({title: 'go to Austria.'});
 console.log(todo.invert());  //Object {go to Austria.: "title", false: "completed"}
 ```
+
+#### 链式API
+
+说到utility函数，另一个语法糖就是Backbone也支持Underscore的`chain()`方法。链式调用是面向对象语言中惯用的语法。它是在同一个对象上执行的一串有序的方法调用以表现出一种单一的状态。然而Backbone使Underscore的数组操作作为Collection对象的方法可用，它们不能直接被链式调用因为它们返回的是数组而不是原始的Collection。
+
+幸运的是，包含在Underscore中的`chain`方法使你可以在集合上使用链式调用。
+
+`chain()`方法返回了一个对象，这个对象带有所有的Underscore数组操作方法，这些方法会返回当前的对象。`chain()`终止于`value()`方法。它可以简单的返回数组的结果。可链式调用的API看起来像这样：
+
+```javascript
+var collection = new Backbone.Collection([
+    { name: 'Tim', age: 5 },
+    { name: 'Ida', age: 26 },
+    { name: 'Rob', age: 55 }
+]);
+
+var filteredNames = collection.chain()  // start chain, returns wrapper around collection's models
+    .filter(function (item) {
+        return item.get('age') > 10;
+    })  // returns wrapped array excluding Tim
+    .map(function (item) {
+        return item.get('name');
+    })  // returns wrapped array containing remaining names
+    .value();   // terminates the chain and returns the resulting array
+
+console.log(filteredNames); // logs: ['Ida', 'Rob']
+```
+
+一些Backbone特定的方法会返回`this`，意味着它们可以直接进行链式调用。
+
+```javascript
+var collection = new Backbone.Collection();
+
+collection
+    .add({ name: 'John', age: 23 })
+    .add({ name: 'Harry', age: 33 })
+    .add({ name: 'Steve', age: 41 });
+
+var names = collection.pluck('name');
+
+console.log(names); // logs: ['John', 'Harry', 'Steve']
+```
