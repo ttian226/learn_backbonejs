@@ -172,3 +172,108 @@ var r = people.some(function (model) {
 });
 console.log(r); // true
 ```
+
+#### size() 返回集合的长度
+
+```javascript
+todos.size();
+
+// 等价于
+todos.length;
+```
+
+#### isEmpty() 判断集合是否为空
+
+```javascript
+var isEmpty = todos.isEmpty();
+```
+
+#### groupBy() 把集合根据指定的属性分组
+
+```javascript
+var todos = new Backbone.Collection();
+
+todos.add([
+    { title: 'go to Belgium.', completed: false },
+    { title: 'go to China.', completed: false },
+    { title: 'go to Austria.', completed: true }
+]);
+
+var byCompleted = todos.groupBy('completed');
+console.log(byCompleted['true'].length);    // 1
+console.log(byCompleted['false'].length);   // 2
+```
+
+
+另外，一些Underscore的Object方法也可以应用在Model上。
+
+#### pick() 从model中提取指定的属性
+
+```javascript
+var Todo = Backbone.Model.extend({
+    defaults: {
+        title: '',
+        completed: false
+    }
+});
+
+var todo = new Todo({title: 'go to Austria.'});
+console.log(todo.pick('title'));    // Object {title: "go to Austria."}
+```
+
+#### omit() 和pick()相反提取除了指定的属性
+
+```javascript
+var Todo = Backbone.Model.extend({
+    defaults: {
+        title: '',
+        completed: false
+    }
+});
+
+var todo = new Todo({title: 'go to Austria.'});
+console.log(todo.omit('title')); // Object {completed: false}
+```
+
+#### keys(),values() 获取属性或值的集合
+
+```javascript
+var Todo = Backbone.Model.extend({
+    defaults: {
+        title: '',
+        completed: false
+    }
+});
+
+var todo = new Todo({title: 'go to Austria.'});
+console.log(todo.keys());   //["title", "completed"]
+console.log(todo.values()); //["go to Austria.", false]
+```
+
+#### pairs() 获取属性的列表作为[key, value]对
+
+```javascript
+var Todo = Backbone.Model.extend({
+    defaults: {
+        title: '',
+        completed: false
+    }
+});
+
+var todo = new Todo({title: 'go to Austria.'});
+console.log(todo.pairs());  //[['title', 'go to Austria.'], ['completed', 'false']]
+```
+
+#### invert() 把对象的属性和值互相转换返回一个新的对象。
+
+```javascript
+var Todo = Backbone.Model.extend({
+    defaults: {
+        title: '',
+        completed: false
+    }
+});
+
+var todo = new Todo({title: 'go to Austria.'});
+console.log(todo.invert());  //Object {go to Austria.: "title", false: "completed"}
+```
