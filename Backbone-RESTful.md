@@ -51,3 +51,52 @@ todos.create({title: 'Try out code samples'}); // 发送HTTP POST请求到/todos
 ```
 
 正如之前提到的，`save()`方法会自动调用`validate()`方法，如果校验失败的话，将会在model上触发一个`invalid`事件
+
+#### 从服务器上删除models
+
+通过调用`destroy()`方法，model可以从包含它的集合中删除。不同于`Collection.remove()`方法，它只会从集合中删除一个model，`Model.destroy()`也可以发送一个HTTP DELETE请求到Collection的URL上。
+
+```javascript
+var Todo = Backbone.Model.extend({
+  defaults: {
+    title: '',
+    completed: false
+  }
+});
+
+var TodosCollection = Backbone.Collection.extend({
+  model: Todo,
+  url: '/todos'
+});
+
+var todos = new TodosCollection();
+todos.fetch();
+
+var todo2 = todos.get(2);
+todo2.destroy(); // 发送HTTP DELETE请求到/todos/2，并从集合中删除model
+```
+
+如果model是`isNew`的，调用`destroy()`方法会返回`false`。
+
+```javascript
+var todo = new Backbone.Model();
+console.log(todo.destroy());
+// false
+```
+
+#### options
+
+每一个RESTful API都会接收多种参数，最重要的是，所有的方法都会接收success和error回调，用来自定义处理服务器的响应。
+
+调用`Model.save()`时指定`{patch: true}`参数，将会发送HTTP PATCH请求来处理发生改变的属性，而不是全部属性。例如`model.save(attrs, {patch: true})`
+
+```javascript
+// Save partial using PATCH
+model.clear().set({id: 1, a: 1, b: 2, c: 3, d: 4});
+model.save();
+model.save({b: 2, d: 4}, {patch: true});
+console.log(this.syncArgs.method);
+// 'patch'
+```
+
+类似的，调用`Collection.fetch()`方法时传递`{reset: true}`参数，在更新集合时会使用`reset()`更新而不是使用`set()`
