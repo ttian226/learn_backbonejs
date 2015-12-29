@@ -187,3 +187,85 @@ ourObject.trigger("dance", 'dancing', "5 minutes");
 ourObject.trigger("dance jump skip", 'on fire', "15 minutes");
 ```
 
+#### listenTo()和stopListening()
+
+`on`和`off`是把回调函数直接添加到被观察对象上的。而`listenTo()`则是告诉一个对象去监听另一个对象上的事件，允许监听者去去跟踪它所监听的事件。`stopListening()`可以随后被监听者调用来停止监听事件。
+
+```javascript
+var a = _.extend({}, Backbone.Events);
+var b = _.extend({}, Backbone.Events);
+var c = _.extend({}, Backbone.Events);
+
+// add listeners to A for events on B and C
+a.listenTo(b, 'anything', function(event){ console.log("anything happened"); });
+a.listenTo(c, 'everything', function(event){ console.log("everything happened"); });
+
+// trigger an event
+b.trigger('anything'); // logs: anything happened
+
+// stop listening
+a.stopListening();
+
+// A does not receive these events
+b.trigger('anything');
+c.trigger('everything');
+```
+
+`stopListening()`也可以有选择的用来停止监听事件，模型，或是回调句柄。
+
+如果你使用`on`和`off`，与此同时又删除了视图和与之关联的models。通常来说不会有问题。（稍后翻译）
+
+#### 事件和视图
+
+在视图中，有两种类型的事件你可以监听：一种是DOM事件，一种是使用Event API触发的事件。理解它们的不同是十分重要的：视图如何绑定这些事件；关于回调被执行的上下文。
+
+DOM事件可以通过视图的`events`属性或者使用`jQuery.on()`来绑定。在使用`events`属性绑定的回调函数内部，`this`指向的是当前的视图对象。而直接使用jQuery绑定的回调函数内部，`this`指向的是当前DOM元素。所有的DOM事件的回调都被传递一个`event`对象。查看Backbone文档中关于`delegateEvents`的详细描述。
+
+关于Event API。如果事件通过`on()`来绑定被观察的对象，那么上下文参数将会被作为第三个参数传进来。如果事件通过`listenTo()`来绑定，那么回调函数中`this`指向的是监听者。传递给Event API的回调函数中的参数是依赖于事件的类型。
+
+下面的例子说明了这些不同之处：
+
+```html
+<div id="todo">
+    <input type='checkbox' />
+</div>
+```
+
+```javascript
+var View = Backbone.View.extend({
+
+    el: '#todo',
+
+    // 使用events属性给DOM绑定事件
+    events: {
+        'click [type="checkbox"]': 'clicked',
+    },
+
+    initialize: function () {
+        // 使用jQuery给DOM绑定事件
+        this.$el.click(this.jqueryClicked);
+
+        // 使用on绑定自定义事件
+        this.on('apiEvent', this.callback);
+    },
+
+    // 这里的'this'指向当前视图
+    clicked: function(event) {
+        console.log("events handler for " + this.el.outerHTML);
+        this.trigger('apiEvent', event.type);
+    },
+
+    // 这里的'this'指向的是被事件绑定的DOM元素
+    jqueryClicked: function(event) {
+        console.log("jQuery handler for " + this.outerHTML);
+    },
+
+    callback: function(eventType) {
+        console.log("event type was " + eventType);
+    }
+
+});
+
+var view = new View();
+```
+
