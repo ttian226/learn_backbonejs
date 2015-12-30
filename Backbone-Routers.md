@@ -74,3 +74,7 @@ var TodoRouter = Backbone.Router.extend({
 /* 现在我们已经有一个路由的设置，我们需要实例化它 */
 var myTodoRouter = new TodoRouter();
 ```
+
+Backbone基于`window.history.pushState`提供了对HTML5 pushState的支持。这允许你像这个例子[http://backbonejs.org/just/an/example](http://backbonejs.org/just/an/example)一样去定义路由。当用户的浏览器不支持pushState时它会通过自动降级来支持。注意，如果你有能力在服务端也支持pushState的话那是最好的，尽管实现起来有点困难。
+
+
