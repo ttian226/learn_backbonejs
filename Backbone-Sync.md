@@ -9,7 +9,7 @@ Backbone.emulateHTTP = false; // 如果服务端不支持处理HTTP PUT或HTTP D
 Backbone.emulateJSON = false; // 如果服务端不支持application/json请求，设置为true
 ```
 
-如果扩展的HTTP方法不被服务端，可以设置Backbone.emulateHTTP为true。如果服务端不支持JSON请求，设置Backbone.emulateJSON为true。
+如果扩展的HTTP方法不被服务端支持，可以设置Backbone.emulateHTTP为true。如果服务端不支持JSON请求，设置Backbone.emulateJSON为true。
 
 ```javascript
 // 创建一个library集合
@@ -100,6 +100,67 @@ Backbone.sync = function(method, model) {
 };
 ```
 
-注意我们为每一个创建的models添加了唯一的id
+注意我们为每一个创建的models添加了唯一的id。
 
-通过覆盖Backbone.sync方法也可以支持其它的后端会话。内置的方法是为RESTful JSON APIs量身定制的，是因为Backbone最初来至于Ruby on Rails的应用。以相同的方式使用HTTP方法（例如PUT）
+通过覆盖Backbone.sync方法也可以支持其它的后端会话。内置的方法是为RESTful JSON APIs量身定制的，是因为Backbone最初来至于Ruby on Rails的应用。以相同的方式使用HTTP方法（例如PUT）。
+
+sync方法带有3个参数
+
+* method：可以是create, update, patch, delete, read中任一个方法
+* model：Backbone的model对象
+* options：可以包含success或error方法
+
+为了实现一个新的`sync`方法可以使用下面的模式：
+
+```javascript
+Backbone.sync = function(method, model, options) {
+
+  function success(result) {
+    // Handle successful results from MyAPI
+    if (options.success) {
+      options.success(result);
+    }
+  }
+
+  function error(result) {
+    // Handle error results from MyAPI
+    if (options.error) {
+      options.error(result);
+    }
+  }
+
+  options || (options = {});
+
+  switch (method) {
+    case 'create':
+      return MyAPI.create(model, success, error);
+
+    case 'update':
+      return MyAPI.update(model, success, error);
+
+    case 'patch':
+      return MyAPI.patch(model, success, error);
+
+    case 'delete':
+      return MyAPI.destroy(model, success, error);
+
+    case 'read':
+      if (model.cid) {
+        return MyAPI.find(model, success, error);
+      } else {
+        return MyAPI.findAll(model, success, error);
+      }
+  }
+};
+```
+
+这个模式是基于一个新的对象上（MyAPI）的一些代理方法，它可以是支持事件的Backbone-style的类。这可以安全的分开进行测试，也可以使用其它的库。
+
+有一些sync的实现，下面在github上的例子可以直接使用：
+
+* Backbone localStorage：支持浏览器本地存储
+* Backbone offline：支持线下工作
+* Backbone Redis：使用Redis的key-value存储
+* backbone-parse：使Backbone整合了Parse.com
+* backbone-websql：存储数据到WebSql
+* Backbone Caching Sync：使用本地存储作为缓存
