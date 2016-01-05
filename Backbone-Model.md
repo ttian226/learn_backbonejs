@@ -2,7 +2,7 @@
 
 Backbone models包含应用的数据和围绕着这些数据的逻辑。例如，我们可以用模型来描述一个todo items。在这个模型中包含了它的一些属性像是`title`(todo的内容),`completed`(当前状态)
 
-通过继承`Backbone.Model`可以创建Model
+通过扩展`Backbone.Model`可以创建Model
 
 ```javascript
 var Todo = Backbone.Model.extend({});
