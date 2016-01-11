@@ -18,8 +18,8 @@ app.TodoView = Backbone.View.extend({
     },
 
     initialize: function () {
-        this.listenTo(this.model, 'change', this.render);
-        this.listenTo(this.model, 'destroy', this.remove);
+        this.listenTo(this.model, 'change', this.render);           // 监听model的change事件,调用render()方法渲染
+        this.listenTo(this.model, 'destroy', this.remove);          // 监听model的destroy事件,调用view.remove方法,它会从DOM中删除el
         this.listenTo(this.model, 'visible', this.toggleVisible);
     },
 

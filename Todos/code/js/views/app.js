@@ -19,17 +19,17 @@ app.AppView = Backbone.View.extend({
     },
 
     initialize: function () {
-        this.allCheckbox = this.$('#toggle-all')[0];
-        this.$input = this.$('.new-todo');
-        this.$footer = this.$('.footer');
-        this.$main = this.$('.main');
+        this.allCheckbox = this.$('#toggle-all')[0];    // toggle-all的checkbox,是DOM对象
+        this.$input = this.$('.new-todo');              // input输入框,是jQuery对象
+        this.$footer = this.$('.footer');               // footer,是jQuery对象
+        this.$main = this.$('.main');                   // main,是jQuery对象
 
-        this.listenTo(app.Todos, 'add', this.addOne);
+        this.listenTo(app.Todos, 'add', this.addOne);   // 监听app.Todos的add事件
         this.listenTo(app.Todos, 'reset', this.addAll);
 
         this.listenTo(app.Todos, 'change:completed', this.filterOne);
         this.listenTo(app.Todos, 'filter', this.filterAll);
-        this.listenTo(app.Todos, 'all', this.render);
+        this.listenTo(app.Todos, 'all', this.render);   // 监听app.Todos的所有事件
 
         app.Todos.fetch();
     },
@@ -67,8 +67,13 @@ app.AppView = Backbone.View.extend({
         app.Todos.each(this.filterOne, this);
     },
 
+    // 在列表中插入一条渲染后的todo HTML
     addOne: function (todo) {
+
+        // 创建TodoView的实例view
         var view = new app.TodoView({model: todo});
+
+        // view.render().el返回的是渲染后的HTML,在把它插入到列表中
         $('.todo-list').append(view.render().el);
     },
 
@@ -102,18 +107,27 @@ app.AppView = Backbone.View.extend({
         this.$input.val('');
     },
 
+    // footer中的clear按钮click事件的回调函数
     clearCompleted: function () {
 
         // completed()返回app.Todos中已完成的model组成的数组
         // _.invoke()对集合中的每个元素(model)调用destroy方法
+        // 触发model的'destroy'事件,destroy事件是在TodoView中监听
         _.invoke(app.Todos.completed(), 'destroy');
         return false;
     },
 
+    // toggle-all的click事件回调函数
     toggleAllComplete: function () {
+
+        // 获取allCheckbox的选中状态
         var completed = this.allCheckbox.checked;
 
+        // 遍历集合中的model
         app.Todos.each(function (todo) {
+
+            // 设置每个model的completed属性使其与allCheckbox一致.
+            // 更新到localStoriage中,并触发model的'change'事件
             todo.save({
                 completed: completed
             });
