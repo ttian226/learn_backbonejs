@@ -25,23 +25,27 @@ app.AppView = Backbone.View.extend({
         this.$main = this.$('.main');                   // main,是jQuery对象
 
         this.listenTo(app.Todos, 'add', this.addOne);   // 监听app.Todos的add事件
-        this.listenTo(app.Todos, 'reset', this.addAll);
+        //this.listenTo(app.Todos, 'reset', this.addAll);
 
-        this.listenTo(app.Todos, 'change:completed', this.filterOne);
-        this.listenTo(app.Todos, 'filter', this.filterAll);
+        this.listenTo(app.Todos, 'change:completed', this.filterOne);   // 监听单个todo的状态改变来触发过滤
+        //this.listenTo(app.Todos, 'filter', this.filterAll);
         this.listenTo(app.Todos, 'all', this.render);   // 监听app.Todos的所有事件
 
-        app.Todos.fetch();
+        app.Todos.fetch();  // 获取之前保存在本地存储中的数据,并保存到app.Todos中
     },
 
     render: function () {
-        var completed = app.Todos.completed().length;
-        var remaining = app.Todos.remaining().length;
+        var completed = app.Todos.completed().length;   // 已完成数
+        var remaining = app.Todos.remaining().length;   // 未完成数
 
+        // 列表中有todo
         if (app.Todos.length) {
+
+            // 显示main和footer
             this.$main.show();
             this.$footer.show();
 
+            // 初始化footer
             this.$footer.html(this.statsTemplate({
                 completed: completed,
                 remaining: remaining
@@ -51,20 +55,30 @@ app.AppView = Backbone.View.extend({
                 .removeClass('selected')
                 .filter('[href="#/' + ( app.TodoFilter || '' ) + '"]')
                 .addClass('selected');
+
+        // 列表中没有todo
         } else {
+
+            // 隐藏main和footer
             this.$main.hide();
             this.$footer.hide();
         }
 
+        // 根据未完成的数目设置check状态
+        // 如果全部都完成了(remaining=0)check为选中状态
+        // 如果有未完成的(remaining>0)check未未选中状态
         this.allCheckbox.checked = !remaining;
     },
 
+    // 单个todo状态改变时回调
     filterOne: function (todo) {
+
+        // 触发todo的自定义visible
         todo.trigger('visible');
     },
 
     filterAll: function () {
-        app.Todos.each(this.filterOne, this);
+        //app.Todos.each(this.filterOne, this);
     },
 
     // 在列表中插入一条渲染后的todo HTML
