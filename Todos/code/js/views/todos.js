@@ -49,12 +49,15 @@ app.TodoView = Backbone.View.extend({
         // 获取当前completed状态
         var isCompleted = this.model.get('completed');
 
+        // 路由#completed时,隐藏未完成的项
+        // 路由#active,隐藏完成的项
         return (
             (!isCompleted && app.TodoFilter === 'completed')
             || (isCompleted && app.TodoFilter === 'active')
         );
     },
 
+    // 切换状态
     togglecompleted: function () {
         this.model.toggle();
     },

@@ -28,8 +28,8 @@ app.AppView = Backbone.View.extend({
         //this.listenTo(app.Todos, 'reset', this.addAll);
 
         this.listenTo(app.Todos, 'change:completed', this.filterOne);   // 监听单个todo的状态改变来触发过滤
-        //this.listenTo(app.Todos, 'filter', this.filterAll);
-        this.listenTo(app.Todos, 'all', this.render);   // 监听app.Todos的所有事件
+        this.listenTo(app.Todos, 'filter', this.filterAll);             // 监听路由变化,由router触发
+        this.listenTo(app.Todos, 'all', this.render);                   // 监听app.Todos的所有事件
 
         app.Todos.fetch();  // 获取之前保存在本地存储中的数据,并保存到app.Todos中
     },
@@ -51,7 +51,8 @@ app.AppView = Backbone.View.extend({
                 remaining: remaining
             }));
 
-            this.$('#filters li a')
+            // 删除所有的a标签的selected类,过滤当前路由的a标签并加上selected类
+            this.$('.filters li a')
                 .removeClass('selected')
                 .filter('[href="#/' + ( app.TodoFilter || '' ) + '"]')
                 .addClass('selected');
@@ -77,8 +78,11 @@ app.AppView = Backbone.View.extend({
         todo.trigger('visible');
     },
 
+    // 路由变化时回调
     filterAll: function () {
-        //app.Todos.each(this.filterOne, this);
+
+        // 遍历app.Todos每个todo来调用filterOne
+        app.Todos.each(this.filterOne, this);
     },
 
     // 在列表中插入一条渲染后的todo HTML
